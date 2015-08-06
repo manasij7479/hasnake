@@ -1,4 +1,3 @@
-import Control.Monad
 myshowList [] = ""
 myshowList (x:xs) = '|':x:'|':myshowList(xs)
 
@@ -42,12 +41,25 @@ nextPos (a, b) RightDir  = (a, b + 1)
 growSnake :: [(Int, Int)] -> Int -> Int -> [(Int, Int)]
 growSnake xs i j = (i,j):xs
 
+sumCoords :: [(Int, Int)] -> Int
+sumCoords [] = 0
+sumCoords ((x,y):xs) = x + y + sumCoords xs
+
+arbiter :: [(Int, Int)] -> Int -> Int -> Dir -> Int -> Int -> (Int, Int)
+arbiter xs x y d i j = let (nX, nY) = ((x*71+y*43) `mod` i,(x*29+y*97) `mod` j) in
+                        if elem (nX, nY) xs
+                        then
+                            arbiter xs nX nY d i j
+                        else (nX, nY)
+
+
 moveSnake :: [(Int, Int)] -> Dir -> Int -> Int -> Int -> Int -> ([(Int, Int)], Int, Int)
 moveSnake ((a,b):xs) d x y i j= 
     let np = nextPos (a,b) d in
         if np == (x,y)
         then
-            (growSnake ((a,b):xs) x y, x+1 , y+1) 
+            let (newX, newY) = arbiter ((a,b):xs) x y d i j in
+            (growSnake ((a,b):xs) x y, newX, newY) 
         else
             ((check np i j xs):(a,b):init xs, x, y)
 
