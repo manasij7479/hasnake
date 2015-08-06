@@ -41,17 +41,12 @@ nextPos (a, b) RightDir  = (a, b + 1)
 growSnake :: [(Int, Int)] -> Int -> Int -> [(Int, Int)]
 growSnake xs i j = (i,j):xs
 
-sumCoords :: [(Int, Int)] -> Int
-sumCoords [] = 0
-sumCoords ((x,y):xs) = x + y + sumCoords xs
-
 arbiter :: [(Int, Int)] -> Int -> Int -> Dir -> Int -> Int -> (Int, Int)
 arbiter xs x y d i j = let (nX, nY) = ((x*71+y*43) `mod` i,(x*29+y*97) `mod` j) in
                         if elem (nX, nY) xs
                         then
                             arbiter xs nX nY d i j
                         else (nX, nY)
-
 
 moveSnake :: [(Int, Int)] -> Dir -> Int -> Int -> Int -> Int -> ([(Int, Int)], Int, Int)
 moveSnake ((a,b):xs) d x y i j= 
@@ -77,4 +72,4 @@ playGame snake x y i j = do
     putStrLn $ showGrid $ putFood newX newY $ putSnake newSnake $ genGrid i j
     playGame newSnake newX newY i j
 
-main = playGame [(5,5),(5,6), (5,7)] (1) (1) 10 10
+main = playGame [(5,5),(5,6), (5,7)] 1 1 10 10
