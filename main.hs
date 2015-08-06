@@ -19,30 +19,50 @@ getAtIndex grid i j = getAtListIndex (getAtListIndex grid i) j
 
 check :: (Int, Int) -> Int -> Int -> [(Int, Int)] -> (Int, Int)
 check (px,py) i j xs = if not(elem (px, py) xs)
-	                  && (px >= 0) && (px < i)
-	                  && (py >= 0) && (py < j)
+                      && (px >= 0) && (px < i)
+                      && (py >= 0) && (py < j)
                     then (px, py) 
                     else error "Game Over"
 
-moveSnake :: [(Int, Int)] -> Char -> Int -> Int -> [(Int, Int)]
-moveSnake ((a,b):xs) 'u' i j= (check (a - 1, b) i j xs):(a,b):init xs
-moveSnake ((a,b):xs) 'd' i j= (check (a + 1, b) i j xs):(a,b):init xs
-moveSnake ((a,b):xs) 'l' i j= (check (a, b - 1) i j xs):(a,b):init xs
-moveSnake ((a,b):xs) 'r' i j= (check (a, b + 1) i j xs):(a,b):init xs
-moveSnake xs _ _ _= xs
+data Dir = UpDir | DownDir | LeftDir | RightDir
+
+charToDir :: Char -> Dir
+charToDir 'u' = UpDir
+charToDir 'd' = DownDir
+charToDir 'l' = LeftDir
+charToDir 'r' = RightDir
+charToDir _ = error "Invalid Input"
+
+nextPos :: (Int, Int) -> Dir -> (Int, Int)
+nextPos (a, b) UpDir     = (a - 1, b)
+nextPos (a, b) DownDir   = (a + 1, b)
+nextPos (a, b) LeftDir   = (a, b - 1)
+nextPos (a, b) RightDir  = (a, b + 1)
 
 growSnake :: [(Int, Int)] -> Int -> Int -> [(Int, Int)]
 growSnake xs i j = (i,j):xs
+
+moveSnake :: [(Int, Int)] -> Dir -> Int -> Int -> Int -> Int -> ([(Int, Int)], Int, Int)
+moveSnake ((a,b):xs) d x y i j= 
+    let np = nextPos (a,b) d in
+        if np == (x,y)
+        then
+            (growSnake ((a,b):xs) x y, x+1 , y+1) 
+        else
+            ((check np i j xs):(a,b):init xs, x, y)
 
 putSnake :: [(Int, Int)] -> [[Char]] -> [[Char]]
 putSnake [] g = g
 putSnake ((i,j):xs) g = setAtIndex (putSnake xs g) i j '#'
 
-playGame :: [(Int, Int)] -> Int -> Int -> IO ()
-playGame snake i j = do
-    (input:rest) <- getLine
-    let newSnake = moveSnake snake input i j 
-    putStrLn $ showGrid $ putSnake newSnake $ genGrid i j
-    playGame newSnake i j
+putFood :: Int -> Int -> [[Char]] -> [[Char]] 
+putFood x y grid = setAtIndex grid x y '$'
 
-main = playGame [(5,5),(5,6), (5,7)] 10 10
+playGame :: [(Int, Int)] -> Int -> Int -> Int -> Int -> IO ()
+playGame snake x y i j = do
+    (input:rest) <- getLine
+    let (newSnake, newX, newY) = moveSnake snake (charToDir input) x y i j
+    putStrLn $ showGrid $ putFood newX newY $ putSnake newSnake $ genGrid i j
+    playGame newSnake newX newY i j
+
+main = playGame [(5,5),(5,6), (5,7)] (1) (1) 10 10
