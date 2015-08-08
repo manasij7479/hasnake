@@ -1,3 +1,6 @@
+import System.CPUTime
+import System.IO.Unsafe (unsafePerformIO)
+
 myshowList [] = ""
 myshowList (x:xs) = '|':x:'|':myshowList(xs)
 
@@ -72,4 +75,21 @@ playGame snake x y i j = do
     putStrLn $ showGrid $ putFood newX newY $ putSnake newSnake $ genGrid i j
     playGame newSnake newX newY i j
 
-main = playGame [(5,5),(5,6), (5,7)] 1 1 10 10
+dePair :: Integer -> Int -> Int -> (Int, Int)
+dePair z i j= let
+               w :: Int 
+               w = fromIntegral $ floor $ sqrt $ fromIntegral $ ((8*z+1) `div` 2 )
+               t :: Int
+               t = (w*w+w) `div` 2
+               y = fromIntegral z - t
+               x = w - y
+           in (x `mod` i, y `mod` j)
+
+main = 
+        let
+            sizeX = 10
+            sizeY = 10
+            (foodX, foodY) = dePair (unsafePerformIO getCPUTime) sizeX sizeY
+            initSnake = [(5,5),(5,6), (5,7)]
+        in
+            playGame initSnake foodX foodY sizeX sizeY
